@@ -45,6 +45,8 @@ try {
   check('金额带符号', text.includes('¥'))
   check('percent', /3\.50%/.test(text))
   check('money 右对齐', /class="[^"]*dt-align-right/.test(basic))
+  check('money 单元格带 dt-money 字体类', /<td class="dt-align-right dt-money"/.test(basic))
+  check('percent 不带 dt-money', !/dt-align-right dt-money[^"]*"[^>]*>[^<]*%/.test(basic))
   check('valueType:tag 出组件', /class="dt-tag"/.test(basic))
   check('valueType:link 出组件', /class="dt-link"/.test(basic))
   check('dict + cellRender 拿到字典 label', /class="dt-tag"[^>]*>待支付</.test(basic))
@@ -61,6 +63,21 @@ try {
   check('table-layout fixed 由 colgroup 承载', /<colgroup/.test(basic) && /<col style="width:\d+px/.test(basic))
   check('外置分页渲染', text.includes('共 23 条') && text.includes('1 / 3'))
   check('对比页无未标注差异', compare.includes('差异全部在预期清单内'), compare.match(/存在 \d+ 处未标注差异/)?.[0] ?? '')
+
+  // 脱离表格复用值管线
+  const { createValueFormatter, formatValue } = await server.ssrLoadModule(
+    '/src/data-table/value-type/format.ts',
+  )
+  check('formatValue money', formatValue('money', 123456, { centsToYuan: true }) === '1,234.56')
+  check('formatValue dict', formatValue('dict', '1', { dict: 'billStatus' }) === '待支付')
+  check('formatValue date', formatValue('date', '2026-08-05 12:00:00') === '2026-08-05')
+  check('formatValue 空值 → emptyText', formatValue('money', '') === '-')
+  check(
+    'createValueFormatter 柯里化',
+    createValueFormatter('money', { centsToYuan: true, symbol: true })(123456) === '¥1,234.56',
+  )
+  check('函数形态用在 label/value 配置里', /原账单总额（元）/.test(compare) || /原账单总额（元）/.test(basic))
+  check('ValueCell 携带 dt-money 样式', /<span class="dt-money"[^>]*>¥1,234\.56<\/span>/.test(basic))
 } finally {
   await server.close()
 }

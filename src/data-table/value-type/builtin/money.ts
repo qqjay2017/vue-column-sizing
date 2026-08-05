@@ -3,6 +3,7 @@ import { defineValueType } from '../registry'
 
 export const moneyValueType = defineValueType<MoneyFormatOptions>({
   align: 'right',
+  cellClass: 'dt-money',
   format: (value, ctx, options = {}) => ctx.config.format.money(value, options),
 })
 

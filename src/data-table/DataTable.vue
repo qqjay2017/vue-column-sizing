@@ -134,7 +134,7 @@ function changePageSize(event: Event) {
             <td
               v-for="column in visibleColumns"
               :key="column.id"
-              :class="cellClass(column)"
+              :class="[cellClass(column), getColumnModel(column).cellClass]"
               :style="pinnedStyle(column)"
             >
               <BodyCell
@@ -294,33 +294,5 @@ function changePageSize(event: Event) {
 .dt-pagination button:disabled {
   color: #c0c4cc;
   cursor: not-allowed;
-}
-</style>
-
-<style>
-.dt-ellipsis {
-  display: block;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.dt-tag {
-  display: inline-block;
-  padding: 0 8px;
-  border: 1px solid currentcolor;
-  border-radius: 4px;
-  line-height: 20px;
-  font-size: 12px;
-}
-
-.dt-link {
-  color: #1677ff;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.dt-link:hover {
-  text-decoration: underline;
 }
 </style>

@@ -12,7 +12,7 @@ const indexValueType = defineValueType({
   align: 'left',
   defaultWidth: 88,
   allowEmpty: true,
-  format: (_value, ctx) => String(ctx.index + 1),
+  format: (_value, ctx) => String((ctx.index ?? 0) + 1),
 })
 
 registerValueType('text', textValueType)

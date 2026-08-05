@@ -1,9 +1,9 @@
 import type { VNodeChild } from 'vue'
 import { getDataTableConfig } from '../config'
 import type { ColumnAlign, NormalizedColumn } from '../interface'
-import { isEmptyValue } from './empty'
-import type { CellCtx, ValueTypeDef } from './registry'
+import type { CellCtx } from './registry'
 import { getValueType } from './registry'
+import { formatWithDef, renderWithDef } from './format'
 
 export interface CellDisplay {
   /** 已格式化的展示文本，永远有值 */
@@ -26,24 +26,6 @@ export function getFieldValue(record: unknown, path: Array<string>): unknown {
   )
 }
 
-function computeText(
-  raw: unknown,
-  def: ValueTypeDef | undefined,
-  ctx: CellCtx,
-  options: Record<string, any>,
-): string {
-  const { emptyText } = ctx.config
-  if (isEmptyValue(raw) && !def?.allowEmpty) {
-    return emptyText
-  }
-  const formatted = def?.format
-    ? def.format(raw, ctx, options)
-    : isEmptyValue(raw)
-      ? undefined
-      : String(raw)
-  return formatted === undefined || formatted === '' ? emptyText : formatted
-}
-
 function buildCtx<TRecord>(
   column: NormalizedColumn<TRecord>,
   record: TRecord,
@@ -60,8 +42,9 @@ function buildCtx<TRecord>(
 }
 
 /**
- * 全组件唯一的值解析入口。展示、tooltip、列宽测量都走这里，
+ * 表格单元格的值解析入口。展示、tooltip、列宽测量都走这里，
  * 取代旧实现中 #bodyCell 模板 / valueTypeRender / getCellDisplayContent 三份各自演化的逻辑。
+ * 文本与组件的具体判定复用 format.ts，与脱离表格的 formatValue / ValueCell 同源。
  */
 export function resolveCellDisplay<TRecord>(
   column: NormalizedColumn<TRecord>,
@@ -73,14 +56,14 @@ export function resolveCellDisplay<TRecord>(
   const def = getValueType(column.valueType)
   const ctx = buildCtx(column, record, index, emptyText)
   const options = column.valueTypeProps
-  const text = computeText(raw, def, ctx, options)
+  const text = formatWithDef(raw, def, ctx, options)
 
-  const node =
-    def?.render && (!isEmptyValue(raw) || def.allowEmpty)
-      ? def.render(raw, { ...ctx, text }, options)
-      : undefined
-
-  return { text, node, raw, align: column.align }
+  return {
+    text,
+    node: renderWithDef(raw, def, ctx, text, options),
+    raw,
+    align: column.align,
+  }
 }
 
 /** 只要文本的轻量版：tooltip、列宽测量、后续的复制/导出都复用它 */
@@ -91,10 +74,9 @@ export function resolveCellText<TRecord>(
   emptyText?: string,
 ): string {
   const raw = getFieldValue(record, column.path)
-  const def = getValueType(column.valueType)
-  return computeText(
+  return formatWithDef(
     raw,
-    def,
+    getValueType(column.valueType),
     buildCtx(column, record, index, emptyText),
     column.valueTypeProps,
   )

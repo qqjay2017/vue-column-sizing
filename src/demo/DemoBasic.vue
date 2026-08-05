@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { computed, h, ref } from 'vue'
-import { DataTable, defineColumns, setDataTableConfig } from '../data-table'
+import {
+  DataTable,
+  ValueCell,
+  createValueFormatter,
+  defineColumns,
+  formatValue,
+  setDataTableConfig,
+} from '../data-table'
 import type { Bill } from './mockDict'
 import {
   billStatusColorMap,
@@ -148,6 +155,18 @@ const columns = defineColumns<Bill>([
   // 具名插槽接管
   { dataIndex: 'billStatus', key: 'action', title: '操作', width: 160, fixed: 'right' },
 ])
+
+/** 存量写法 `value: (val) => formatAmountColumn(val)` 的等价替换 */
+const formatBillAmount = createValueFormatter('money', { centsToYuan: true, symbol: true })
+
+const sample = computed(() => all.value[0])
+
+const descriptions: Array<{ label: string; value: (bill: Bill) => string }> = [
+  { label: '原账单总额（元）', value: (bill) => formatBillAmount(bill.amountCents) },
+  { label: '账单状态', value: (bill) => formatValue('dict', bill.billStatus, { dict: 'billStatus' }) },
+  { label: '签约日期', value: (bill) => formatValue('date', bill.signDate) },
+  { label: '支付时间', value: (bill) => formatValue('datetime', bill.payTime) },
+]
 </script>
 
 <template>
@@ -180,6 +199,25 @@ const columns = defineColumns<Bill>([
         </span>
       </template>
     </DataTable>
+
+    <h2 class="demo-subtitle">脱离表格复用同一套值处理</h2>
+
+    <!-- 函数形态：配置里 value 是格式化函数，取代各处手写 formatAmountColumn -->
+    <dl class="demo-descriptions">
+      <template v-for="item in descriptions" :key="item.label">
+        <dt>{{ item.label }}</dt>
+        <dd>{{ item.value(sample) }}</dd>
+      </template>
+    </dl>
+
+    <!-- 组件形态：自带该 valueType 声明的样式（money 走 dt-money 字体） -->
+    <div class="demo-value-cells">
+      <span>组件形态：</span>
+      <ValueCell type="money" :value="123456" :options="{ centsToYuan: true, symbol: true }" />
+      <ValueCell type="dict" :value="'1'" :options="{ dict: 'billStatus' }" />
+      <ValueCell type="date" :value="'2026-08-05 12:00:00'" />
+      <ValueCell type="tag" :value="'新签'" :options="{ defaultColor: '#1677ff' }" />
+    </div>
   </section>
 </template>
 
@@ -198,6 +236,32 @@ const columns = defineColumns<Bill>([
 .demo-bar h2 {
   margin: 0;
   font-size: 16px;
+}
+
+.demo-subtitle {
+  margin: 24px 0 12px;
+  font-size: 16px;
+}
+
+.demo-descriptions {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 8px 16px;
+  margin: 0 0 16px;
+}
+
+.demo-descriptions dt {
+  color: #909399;
+}
+
+.demo-descriptions dd {
+  margin: 0;
+}
+
+.demo-value-cells {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .demo-slot {

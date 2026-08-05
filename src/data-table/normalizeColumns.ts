@@ -65,6 +65,7 @@ export function normalizeColumn(
     valueType,
     valueTypeProps: resolveValueTypeProps(source),
     align: source.align ?? def?.align ?? ('left' as ColumnAlign),
+    cellClass: def?.cellClass,
     width: source.width ?? def?.defaultWidth,
     fixed: source.fixed,
     ellipsisTooltip: resolveEllipsisTooltip(source.ellipsis),

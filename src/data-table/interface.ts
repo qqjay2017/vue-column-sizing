@@ -112,6 +112,8 @@ export interface NormalizedColumn<TRecord = any> {
   valueType: ValueTypeName
   valueTypeProps: Record<string, any>
   align: ColumnAlign
+  /** valueType 声明的单元格附加 class */
+  cellClass?: string
   width?: number
   fixed?: 'left' | 'right'
   /** 溢出时是否弹 tooltip。溢出隐藏本身恒开启，与旧组件一致 */

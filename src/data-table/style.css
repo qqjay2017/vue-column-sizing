@@ -1,0 +1,41 @@
+/* 单元格级公共样式。表格与脱离表格的 ValueCell 共用，故独立成文件由 index.ts 引入 */
+
+@font-face {
+  font-family: BarlowSemiCondensed-Bold;
+  src: url('https://oss-static.qijiswap.com/cullinan/bs-web/fonts/BarlowSemiCondensed-Bold.ttf')
+    format('truetype');
+  font-display: swap;
+}
+
+.dt-ellipsis {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 金额用紧缩加粗数字字体，与旧 ValueTypeCell 的 .money-cell 一致 */
+.dt-money {
+  font-family: BarlowSemiCondensed-Bold, inherit;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.dt-tag {
+  display: inline-block;
+  padding: 0 8px;
+  border: 1px solid currentcolor;
+  border-radius: 4px;
+  line-height: 20px;
+  font-size: 12px;
+}
+
+.dt-link {
+  color: #1677ff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dt-link:hover {
+  text-decoration: underline;
+}
